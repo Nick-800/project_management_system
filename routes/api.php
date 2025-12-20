@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\CommentController;
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
@@ -39,4 +40,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Status updates
     Route::patch('tasks/{task}/status', [TaskController::class, 'updateStatus']);
     Route::post('tasks/bulk-status', [TaskController::class, 'bulkUpdateStatus']);
+
+    // Comments (polymorphic: project/task)
+    Route::post('comments', [CommentController::class, 'store']);
+    Route::put('comments/{comment}', [CommentController::class, 'update']);
+    Route::delete('comments/{comment}', [CommentController::class, 'destroy']);
 });
