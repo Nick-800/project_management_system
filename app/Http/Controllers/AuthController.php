@@ -56,15 +56,10 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request): Response
     {
-        $token = $request->user()?->currentAccessToken();
-
-        if ($token) {
-            $token->delete();
-        }
-
-        return response()->json(null, Response::HTTP_NO_CONTENT);
+        $request->user()->currentAccessToken()->delete();
+        return response()->noContent();
     }
 
     public function me(Request $request): JsonResponse

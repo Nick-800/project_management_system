@@ -12,7 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->statefulApi()->api(append: ['auth:sanctum']);
+        // Do not enable stateful API globally; use explicit route middleware.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
