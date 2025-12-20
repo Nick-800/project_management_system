@@ -6,6 +6,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\AttachmentController;
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
@@ -57,4 +58,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Assign / unassign tags to tasks
     Route::post('tasks/{task}/tags/{tag}', [TagController::class, 'assignToTask'])->middleware('permission:manage_tasks|manage_tags');
     Route::delete('tasks/{task}/tags/{tag}', [TagController::class, 'unassignFromTask'])->middleware('permission:manage_tasks|manage_tags');
+
+    // Attachments upload/delete (private storage)
+    Route::post('attachments', [AttachmentController::class, 'store']);
+    Route::delete('attachments/{attachment}', [AttachmentController::class, 'destroy']);
 });
