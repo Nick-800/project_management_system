@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
 use App\Models\Comment;
+use App\Http\Resources\CommentResource;
 use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\Task;
@@ -33,7 +34,7 @@ class CommentController extends Controller
             'body' => $request->string('body')->toString(),
         ]);
 
-        return response()->json($comment->load('user'), Response::HTTP_CREATED);
+        return response()->json(new CommentResource($comment->load('user')), Response::HTTP_CREATED);
     }
 
     public function update(UpdateCommentRequest $request, Comment $comment): JsonResponse
@@ -50,7 +51,7 @@ class CommentController extends Controller
 
         $comment->update($request->validated());
 
-        return response()->json($comment->load('user'));
+        return response()->json(new CommentResource($comment->load('user')));
     }
 
     public function destroy(Request $request, Comment $comment): JsonResponse

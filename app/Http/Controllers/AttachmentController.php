@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Attachment\StoreAttachmentRequest;
 use App\Models\Attachment;
+use App\Http\Resources\AttachmentResource;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -41,7 +42,7 @@ class AttachmentController extends Controller
             'size' => $file->getSize(),
         ]);
 
-        return response()->json($attachment->load('user'), Response::HTTP_CREATED);
+        return response()->json(new AttachmentResource($attachment->load('user')), Response::HTTP_CREATED);
     }
 
     public function destroy(Request $request, Attachment $attachment): JsonResponse

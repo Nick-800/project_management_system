@@ -24,4 +24,13 @@ class StoreAttachmentRequest extends FormRequest
             ],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'on.in' => 'Attachments must target either a project or a task.',
+            'file.max' => 'Attachments may not be larger than 10 MB.',
+            'file.mimetypes' => 'Unsupported file type. Allowed: JPEG, PNG, PDF, TXT, DOCX.',
+        ];
+    }
 }
