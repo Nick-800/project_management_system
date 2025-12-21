@@ -38,7 +38,6 @@ Getting started is straightforward. Make sure you have PHP 8.2+, Composer, and N
 2. **Install dependencies**:
    ```bash
    composer install
-   npm install && npm run build  # For frontend assets if needed
    ```
 
 3. **Environment setup**:
