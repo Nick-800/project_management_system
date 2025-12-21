@@ -17,7 +17,7 @@ class GoogleController extends Controller
 
     public function handleGoogleCallback()
     {
-        $googleUser = Socialite::driver('google')->stateless()->user();
+        $googleUser = Socialite::driver('google')->user();
 
         $user = User::where('email', $googleUser->getEmail())->first();
 
@@ -26,6 +26,7 @@ class GoogleController extends Controller
                 'name' => $googleUser->getName(),
                 'email' => $googleUser->getEmail(),
                 'google_id' => $googleUser->getId(),
+                'password' => bcrypt(\Illuminate\Support\Str::random(10))
             ]);
         }
 
