@@ -1,52 +1,219 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Project Management System (PMS) API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Hey there! This is a robust Laravel-based API for managing projects, tasks, teams, and more. Built with Laravel 12, it includes authentication via Sanctum tokens or Google OAuth, role-based permissions, and all the bells and whistles for a modern PMS. Whether you're building a frontend app or integrating with other tools, this API has you covered.
 
-## Project Management System API
+**Live Demo**: Check out the live version at [pms.kamash.ly](https://pms.kamash.ly) to see it in action!
 
-A Laravel 12+ JSON REST API for a Project Management System with Sanctum authentication, role/permission RBAC, polymorphic comments & attachments, filtering, caching, and queues.
+## Features
 
-## Setup
-
-```powershell
-# Install deps
-composer install
-
-# Environment & key
-copy .env.example .env
-php artisan key:generate
-
-# Migrate & seed
-php artisan migrate --force
-php artisan db:seed --force
-
-# Run server (and optional queue)
-php artisan serve
-php artisan queue:listen --tries=1
-```
+- **User Authentication**: Register, login, logout with email/password or Google sign-in.
+- **Role-Based Access Control (RBAC)**: Permissions for managing projects, tasks, tags, etc., using Spatie Laravel Permission.
+- **Projects & Tasks**: Full CRUD with filtering, soft deletes, and bulk operations.
+- **Comments & Attachments**: Polymorphic comments on projects/tasks, file uploads with private storage.
+- **Tags**: Assign tags to tasks for better organization.
+- **Queues & Caching**: Background jobs for notifications, Redis/database caching for performance.
+- **Testing**: Comprehensive tests with Pest/PhpUnit.
+- **API-First**: JSON responses, bearer token auth, pagination, and error handling.
 
 ## Tech Stack
-- Laravel 12, PHP 8.2
-- Sanctum for token auth
-- Spatie Laravel Permission for roles & permissions
-- Pest/PhpUnit for tests
+
+- **Laravel 12** (PHP 8.2+)
+- **Sanctum** for API token authentication
+- **Spatie Laravel Permission** for roles/permissions
+- **MySQL** (or compatible) for database
+- **Redis** for caching/queues (optional)
+- **Pest/PhpUnit** for testing
+- **Socialite** for Google OAuth
+
+## Installation & Setup
+
+Getting started is straightforward. Make sure you have PHP 8.2+, Composer, and Node.js installed.
+
+1. **Clone the repo**:
+   ```bash
+   git clone <your-repo-url>
+   cd pms
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   composer install
+   npm install && npm run build  # For frontend assets if needed
+   ```
+
+3. **Environment setup**:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   Update `.env` with your database, mail, and Google OAuth credentials (see below).
+
+4. **Database**:
+   ```bash
+   php artisan migrate --seed
+   ```
+   This sets up tables and seeds sample data (users, roles, etc.).
+
+5. **Permissions** (if on Linux/Mac):
+   ```bash
+   chown -R www-data:www-data storage bootstrap/cache
+   chmod -R 775 storage bootstrap/cache
+   ```
+
+6. **Run the app**:
+   ```bash
+   php artisan serve  # For local dev
+   php artisan queue:work  # For background jobs
+   ```
+
+Your API will be at `http://localhost:8000`. For production, deploy to a server with proper permissions and env vars.
 
 ## Authentication
-- Endpoints: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
-- Use bearer tokens from `login` / `register` response.
 
-## API JSON Structures
+We support two ways to authenticate: traditional email/password and Google OAuth.
 
-### Headers
-- Protected endpoints require: `Authorization: Bearer <token>`
-- `Content-Type: application/json` for JSON bodies (except attachments upload)
+### Email/Password Auth
 
-### Common error responses
+- **Register**: `POST /api/auth/register` with `name`, `email`, `password`.
+- **Login**: `POST /api/auth/login` with `email`, `password`.
+- **Logout**: `POST /api/auth/logout` (requires token).
+- **Get User**: `GET /api/auth/me` (requires token).
+
+Example login response:
+```json
+{
+  "user": { "id": 1, "name": "John Doe", "email": "john@example.com" },
+  "token": "your-bearer-token-here"
+}
+```
+
+Use the token in headers: `Authorization: Bearer <token>`.
+
+### Google Sign-In
+
+For a seamless login experience:
+
+1. Set up Google OAuth in your Google Console (get client ID/secret).
+2. Add to `.env`:
+   ```
+   GOOGLE_CLIENT_ID=your-client-id
+   GOOGLE_CLIENT_SECRET=your-secret
+   GOOGLE_REDIRECT_URI=https://yourdomain.com/auth/google/callback
+   ```
+
+3. Redirect users to `GET /auth/google` (web route, not API).
+4. Google redirects back to `GET /auth/google/callback`, which returns a JSON token like above.
+
+Note: This creates users automatically if they don't exist. No password needed!
+
+## API Endpoints
+
+All API endpoints are under `/api/` and return JSON. Protected routes need `Authorization: Bearer <token>`. We use pagination for lists, and responses include error details.
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/me` - Get current user
+
+### Projects
+- `GET /api/projects` - List projects (with filters: `?status=active&name=foo`)
+- `POST /api/projects` - Create project (perms: manage_projects)
+- `GET /api/projects/{id}` - Get project details
+- `PUT /api/projects/{id}` - Update project
+- `DELETE /api/projects/{id}` - Delete project
+- `POST /api/projects/{id}/restore` - Restore deleted project
+- `POST /api/projects/{id}/members` - Add member to project
+- `DELETE /api/projects/{id}/members` - Remove member
+
+Example project create:
+```json
+{
+  "name": "New Project",
+  "description": "Project details",
+  "status": "active"
+}
+```
+
+### Tasks
+- `GET /api/tasks` - List tasks (filters: `?project_id=1&status=pending&assigned_to=2`)
+- `POST /api/tasks` - Create task (perms: manage_tasks)
+- `GET /api/tasks/{id}` - Get task
+- `PUT /api/tasks/{id}` - Update task
+- `DELETE /api/tasks/{id}` - Delete task
+- `POST /api/tasks/{id}/restore` - Restore task
+- `PATCH /api/tasks/{id}/status` - Update status
+- `POST /api/tasks/bulk-status` - Bulk update statuses
+
+### Comments
+- `POST /api/comments` - Add comment (to project or task)
+- `PUT /api/comments/{id}` - Edit comment
+- `DELETE /api/comments/{id}` - Delete comment
+
+Example:
+```json
+{
+  "content": "This is a comment",
+  "commentable_type": "App\\Models\\Project",
+  "commentable_id": 1
+}
+```
+
+### Tags
+- `GET /api/tags` - List tags
+- `POST /api/tags` - Create tag (perms: manage_tags)
+- `GET /api/tags/{id}` - Get tag
+- `PUT /api/tags/{id}` - Update tag
+- `DELETE /api/tags/{id}` - Delete tag
+- `POST /api/tasks/{task}/tags/{tag}` - Assign tag to task
+- `DELETE /api/tasks/{task}/tags/{tag}` - Unassign tag
+
+### Attachments
+- `POST /api/attachments` - Upload file (multipart/form-data)
+- `DELETE /api/attachments/{id}` - Delete file
+
+Files are stored privately; access via signed URLs if needed.
+
+## Testing
+
+We use Pest for tests. Run them with:
+
+```bash
+php artisan test  # Or vendor/bin/pest
+```
+
+Key test files:
+- `tests/Feature/AuthTest.php` - Auth endpoints
+- `tests/Feature/ProjectTest.php` - Project CRUD
+- `tests/Feature/TaskTest.php` - Task operations
+- `tests/Unit/` - Unit tests
+
+Tests cover happy paths, permissions, validation, and edge cases. Use `--filter` to run specific tests.
+
+For API testing, check `docs/postman_collection.json` for a Postman collection with all endpoints.
+
+## Deployment
+
+- Set `APP_ENV=production` in `.env`.
+- Run `php artisan config:cache`, `php artisan route:cache`, etc.
+- Use a process manager like Supervisor for queues.
+- Ensure storage permissions as above.
+- For Google OAuth, set redirect URI to your production domain.
+
+## Common Issues
+
+- **500 Error**: Check logs in `storage/logs/laravel.log`. Often permissions or missing env vars.
+- **Auth Fails**: Verify token format and Sanctum config.
+- **Google OAuth**: Ensure stateless mode if sessions are flaky.
+- **Permissions**: Seed roles/permissions with `php artisan db:seed`.
+
+## Contributing
+
+Feel free to open issues or PRs. Follow Laravel conventions, write tests, and keep it clean!
+
+## License
+
+MIT License. Go build something awesome!
 
 **401 Unauthorized**
 ```json
